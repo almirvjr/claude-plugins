@@ -1,0 +1,8 @@
+{
+  "name": "common-kit",
+  "description": "Utilitarios comuns: hook check-write-path + slash command /save para manter PROGRESSO/HISTORICO/DECISOES.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Almir"
+  }
+}

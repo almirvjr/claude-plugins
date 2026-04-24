@@ -1,0 +1,8 @@
+{
+  "name": "ml-kit",
+  "description": "Mercado Libre helpers: auto-refresh access_token do Supabase no .mcp.json e slash command manual.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Almir"
+  }
+}

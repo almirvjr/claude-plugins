@@ -1,0 +1,18 @@
+{
+  "name": "almir-plugins",
+  "owner": {
+    "name": "Almir"
+  },
+  "plugins": [
+    {
+      "name": "ml-kit",
+      "source": "./ml-kit",
+      "description": "Auto-refresh do access_token ML no .mcp.json via Supabase. Hook SessionStart + /ml-kit:refresh-ml."
+    },
+    {
+      "name": "common-kit",
+      "source": "./common-kit",
+      "description": "Slash command /common-kit:save e hook check-write-path para proteger writes fora do projeto."
+    }
+  ]
+}
