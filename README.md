@@ -19,11 +19,12 @@ Marketplace privado de plugins Claude Code para automacao n8n/ML/Supabase.
 /plugin install common-kit@almir-plugins
 ```
 
-### Via GitHub (quando publicado)
+### Via GitHub
 
 ```shell
-/plugin marketplace add almir/claude-plugins
+/plugin marketplace add almirvjr/claude-plugins
 /plugin install ml-kit@almir-plugins
+/plugin install common-kit@almir-plugins
 ```
 
 ## Atualizar
