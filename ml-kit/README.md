@@ -4,34 +4,75 @@ Plugin local Claude Code para automacao Mercado Libre.
 
 ## O que faz
 
-- **Hook SessionStart**: ao abrir/retomar sessao, le o `access_token` mais recente da tabela `public.access_token_ML` no Supabase e atualiza `.mcp.json` do projeto com `Authorization: Bearer <token>`.
-- **Slash command** `/ml-kit:refresh-ml`: roda o refresh manualmente.
+Mantem o servidor MCP do Mercado Libre sempre autenticado com token fresco do Supabase, sem necessidade de reconnect manual.
+
+### 1. `headersHelper` (recomendado)
+
+Aponta o `.mcp.json` para o script `bin/get-ml-headers.ps1`. Esse script roda **toda vez** que o Claude Code abre conexao com o servidor (startup, reconnect via `/mcp`, reconexao automatica), retornando JSON com `Authorization: Bearer <token>` puxado direto do Supabase. Sem janela de token velho, sem reconnect manual.
+
+### 2. Hook `SessionStart` (legado/fallback)
+
+Mantido por compatibilidade. Atualiza o `.mcp.json` no inicio da sessao gravando o Bearer no campo `headers`. Em projetos que ainda nao migraram para `headersHelper`, ele continua funcionando — mas exige `/mcp` reconnect manual quando o Claude Code abre o projeto antes do hook terminar.
+
+### 3. Slash command `/ml-kit:refresh-ml`
+
+Atualiza o token manualmente via hook (modo legado), util quando ainda se usa o campo `headers` em vez de `headersHelper`.
 
 ## Requisitos do projeto
 
-Para o hook funcionar, o projeto precisa ter:
+Para ambos os modos funcionarem, o projeto precisa ter:
 
 - `.env` com:
   - `SUPABASE_PROJECT_ID=<ref-do-projeto>`
   - `SUPABASE_ANON_KEY=<anon-key>`
-- `.mcp.json` com bloco `mcpServers.mercadolibre` usando transport `http` (ver `.mcp.json.example` no template de projeto).
+- `.mcp.json` com bloco `mcpServers.mercadolibre` usando transport `http`.
 - Tabela `public.access_token_ML` com coluna `access_token` (text) e `expires_at` (timestamptz) no Supabase.
 
-Faltando qualquer item, o hook faz early-exit silencioso (nao quebra sessoes em projetos que nao usam ML).
+Faltando qualquer item, o helper retorna `{}` (e o MCP falha com 401 explicito) e o hook faz early-exit silencioso.
 
-## Instalacao (uso local durante dev)
+## Configuracao recomendada do `.mcp.json`
 
-```bash
-claude --plugin-dir C:\Users\Almir\claude-plugins\ml-kit
+```json
+{
+  "mcpServers": {
+    "mercadolibre": {
+      "type": "http",
+      "url": "https://mcp.mercadolibre.com/mcp",
+      "headersHelper": "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\Users\\Almir\\claude-plugins\\ml-kit\\bin\\get-ml-headers.ps1"
+    }
+  }
+}
 ```
 
-Ou configurar via marketplace (futuro).
+> Caminho absoluto do script intencional — `headersHelper` nao expande `${CLAUDE_PLUGIN_ROOT}`.
 
-## Reload apos edit
+## Configuracao legada (hook + headers)
 
-Dentro do Claude Code: `/reload-plugins`
+```json
+{
+  "mcpServers": {
+    "mercadolibre": {
+      "type": "http",
+      "url": "https://mcp.mercadolibre.com/mcp",
+      "headers": {
+        "Authorization": "Bearer <preenchido-pelo-hook>"
+      }
+    }
+  }
+}
+```
+
+## Atualizacao do plugin
+
+```
+/plugin marketplace update almir-plugins
+/plugin update ml-kit@almir-plugins
+```
+
+Apos atualizar, **rode `/mcp` reconnect uma vez** para que o Claude Code releia a configuracao do `.mcp.json` (so necessario na transicao para o novo plugin).
 
 ## Limitacoes
 
-- Token ML expira em ~6h. Hook dispara apenas em `SessionStart`. Se expirar durante sessao longa, use `/ml-kit:refresh-ml` + `/mcp` reload.
-- Requer PowerShell 5.1+ no Windows.
+- Funciona apenas no Windows (PowerShell 5.1+).
+- `headersHelper` recebe `$env:CLAUDE_PROJECT_DIR` setado pelo Claude Code — se o projeto nao tiver `.env`, o helper devolve `{}`.
+- Token ML expira em ~6h. Com `headersHelper` o refresh acontece automaticamente em qualquer reconexao.
