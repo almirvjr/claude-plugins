@@ -19,6 +19,7 @@ function Emit-Empty {
 }
 
 $projectRoot = $env:CLAUDE_PROJECT_DIR
+if (-not $projectRoot) { $projectRoot = (Get-Location).Path }
 if (-not $projectRoot) { Emit-Empty }
 
 $envPath = Join-Path $projectRoot '.env'

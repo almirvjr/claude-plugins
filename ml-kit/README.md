@@ -74,5 +74,5 @@ Apos atualizar, **rode `/mcp` reconnect uma vez** para que o Claude Code releia 
 ## Limitacoes
 
 - Funciona apenas no Windows (PowerShell 5.1+).
-- `headersHelper` recebe `$env:CLAUDE_PROJECT_DIR` setado pelo Claude Code — se o projeto nao tiver `.env`, o helper devolve `{}`.
+- `headersHelper` tenta `$env:CLAUDE_PROJECT_DIR` primeiro e cai para `(Get-Location).Path` (PWD) se nao estiver setada — Claude Code spawna o helper com o cwd no projeto, entao funciona em ambos os casos.
 - Token ML expira em ~6h. Com `headersHelper` o refresh acontece automaticamente em qualquer reconexao.
