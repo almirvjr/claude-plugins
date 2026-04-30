@@ -37,7 +37,11 @@ $projectId = $envVars['SUPABASE_PROJECT_ID']
 $anonKey   = $envVars['SUPABASE_ANON_KEY']
 if (-not $projectId -or -not $anonKey) { Emit-Empty }
 
-$url = "https://$projectId.supabase.co/rest/v1/access_token_ML?select=access_token&order=id.desc&limit=1"
+# Filtra app_name=pre-venda: o MCP `mercadolibre` do Claude Code conecta ao app
+# pre-venda (5916831599157597). Outros apps (pos-venda etc.) podem coexistir na
+# tabela e ter tokens expirados — sem este filtro, `order=id.desc&limit=1` pega
+# o app errado e o MCP responde 401 "requires authentication".
+$url = "https://$projectId.supabase.co/rest/v1/access_token_ML?select=access_token&app_name=eq.pre-venda&order=id.desc&limit=1"
 $headers = @{
     'apikey'        = $anonKey
     'Authorization' = "Bearer $anonKey"

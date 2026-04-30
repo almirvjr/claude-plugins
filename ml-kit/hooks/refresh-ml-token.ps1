@@ -34,7 +34,8 @@ try {
 }
 if (-not $json.mcpServers -or -not $json.mcpServers.mercadolibre) { exit 0 }
 
-$url = "https://$projectId.supabase.co/rest/v1/access_token_ML?select=access_token,expires_at&order=id.desc&limit=1"
+# Filtra app_name=pre-venda: ver comentário em bin/get-ml-headers.ps1.
+$url = "https://$projectId.supabase.co/rest/v1/access_token_ML?select=access_token,expires_at&app_name=eq.pre-venda&order=id.desc&limit=1"
 $headers = @{
     'apikey'        = $anonKey
     'Authorization' = "Bearer $anonKey"
