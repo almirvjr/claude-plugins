@@ -1,7 +1,7 @@
 {
   "name": "ml-kit",
   "description": "Mercado Libre helpers: headersHelper script (auto-refresh em toda conexao MCP) + slash command manual.",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "author": {
     "name": "Almir"
   }

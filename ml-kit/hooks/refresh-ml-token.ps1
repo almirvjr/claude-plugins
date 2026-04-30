@@ -1,6 +1,15 @@
 #requires -Version 5.1
-# Atualiza $CLAUDE_PROJECT_DIR/.mcp.json com access_token mais recente da tabela access_token_ML no Supabase.
-# Early-exit silencioso se projeto nao tem .env, .mcp.json ou bloco mercadolibre.
+# Loga status do access_token ML pre-venda no SessionStart.
+#
+# IMPORTANTE: este hook NAO escreve em .mcp.json. Antigamente (v1.0-v1.3) ele
+# atualizava o campo headers.Authorization, mas isso conflita com o
+# headersHelper (introduzido em v1.1, que ja faz leitura ao vivo do Supabase
+# em toda conexao MCP) — o headers literal ficava cacheado com token antigo
+# enquanto o headersHelper era ignorado, derrubando o MCP em ~6h.
+#
+# A partir de v1.4, este hook so consulta o token e loga status. headersHelper
+# eh fonte unica de verdade para o Authorization. .mcp.json so deve ter
+# headersHelper, sem o campo headers.
 
 $ErrorActionPreference = 'Stop'
 
@@ -29,12 +38,18 @@ if (-not $projectId -or -not $anonKey) { exit 0 }
 try {
     $json = Get-Content $mcpPath -Raw | ConvertFrom-Json
 } catch {
-    Write-Host "[ml-kit] .mcp.json invalido, pulando refresh."
     exit 0
 }
 if (-not $json.mcpServers -or -not $json.mcpServers.mercadolibre) { exit 0 }
 
-# Filtra app_name=pre-venda: ver comentário em bin/get-ml-headers.ps1.
+# Aviso se o usuario ainda tem campo `headers` literal no .mcp.json. Sem
+# remover, o Claude Code prioriza-o em vez do headersHelper e o token
+# cacheado vence em ~6h.
+if ($json.mcpServers.mercadolibre.headers) {
+    Write-Host "[ml-kit] AVISO: .mcp.json ainda tem 'headers' literal no bloco mercadolibre. Remova esse campo — apenas 'headersHelper' deve ser usado."
+}
+
+# Filtra app_name=pre-venda: ver comentario em bin/get-ml-headers.ps1.
 $url = "https://$projectId.supabase.co/rest/v1/access_token_ML?select=access_token,expires_at&app_name=eq.pre-venda&order=id.desc&limit=1"
 $headers = @{
     'apikey'        = $anonKey
@@ -50,7 +65,7 @@ try {
 }
 
 if (-not $resp -or $resp.Count -eq 0) {
-    Write-Host "[ml-kit] Nenhum token encontrado em access_token_ML"
+    Write-Host "[ml-kit] Nenhum token encontrado em access_token_ML (app_name=pre-venda)"
     exit 0
 }
 
@@ -58,13 +73,6 @@ $token     = $resp[0].access_token
 $expiresAt = $resp[0].expires_at
 if (-not $token) { exit 0 }
 
-if (-not $json.mcpServers.mercadolibre.headers) {
-    $json.mcpServers.mercadolibre | Add-Member -NotePropertyName headers -NotePropertyValue (@{}) -Force
-}
-$json.mcpServers.mercadolibre.headers | Add-Member -NotePropertyName Authorization -NotePropertyValue "Bearer $token" -Force
-
-$json | ConvertTo-Json -Depth 10 | Set-Content -Path $mcpPath -Encoding utf8
-
 $preview = $token.Substring(0, [Math]::Min(20, $token.Length))
-Write-Host "[ml-kit] Token ML atualizado: $preview... Expira: $expiresAt"
+Write-Host "[ml-kit] Token ML pre-venda: $preview... Expira: $expiresAt (headersHelper resolve em cada conexao)"
 exit 0
