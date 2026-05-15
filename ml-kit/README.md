@@ -16,7 +16,7 @@ Mantido por compatibilidade. Atualiza o `.mcp.json` no inicio da sessao gravando
 
 ### 3. Slash command `/ml-kit:refresh-ml`
 
-Atualiza o token manualmente via hook (modo legado), util quando ainda se usa o campo `headers` em vez de `headersHelper`.
+Forca um refresh manual dos access_tokens (pre-venda + pos-venda) disparando o webhook do workflow n8n `[TOKEN ML] Refresh via Cron Externo - a cada 3h` (ID `KOblYJST7loNVAqP`). Usa o MCP n8n pra ler path/secret do webhook, dispara via `Invoke-WebRequest`, confirma a execucao e valida o novo `expires_at` no Supabase. Util quando o token esta perto de expirar ou o cron-job.org falhou. Como o `headersHelper` le o token fresco a cada conexao, nao precisa reconectar MCP.
 
 ## Requisitos do projeto
 
