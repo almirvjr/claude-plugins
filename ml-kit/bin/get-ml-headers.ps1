@@ -33,8 +33,24 @@ Get-Content $envPath | ForEach-Object {
     }
 }
 
+$fnUrl     = $envVars['ML_TOKEN_FUNCTION_URL']
+$fnSec     = $envVars['ML_TOKEN_SHARED_SECRET']
 $projectId = $envVars['SUPABASE_PROJECT_ID']
 $anonKey   = $envVars['SUPABASE_ANON_KEY']
+
+# Modo Edge Function get-ml-token (consumidor, ex.: Rodolpho): sem anon key,
+# recebe so o access_token. Fonte unica de verdade quando presente no .env.
+if ($fnUrl -and $fnSec) {
+    try {
+        $resp = Invoke-RestMethod -Uri $fnUrl -Headers @{ 'x-shared-secret' = $fnSec } -Method Get -TimeoutSec 15
+    } catch { Emit-Empty }
+    $token = $resp.access_token
+    if (-not $token) { Emit-Empty }
+    Write-Output ( @{ Authorization = "Bearer $token" } | ConvertTo-Json -Compress )
+    exit 0
+}
+
+# Modo PostgREST via anon key (dono). Ausencia de ambos = sem como resolver.
 if (-not $projectId -or -not $anonKey) { Emit-Empty }
 
 # Filtra app_name=pre-venda: o MCP `mercadolibre` do Claude Code conecta ao app

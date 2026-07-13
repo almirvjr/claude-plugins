@@ -19,6 +19,10 @@ Apos atualizar os arquivos, execute via Bash (usando `$CLAUDE_PROJECT_DIR` para 
 cd "$CLAUDE_PROJECT_DIR" && git add PROGRESSO.md HISTORICO.md DECISOES.md CLAUDE.md REFERENCIA.md 2>/dev/null; git diff --cached --quiet || git commit -m "chore: save session progress [auto]
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+# push automatico do que foi commitado (nao falha a sessao se nao houver remote/upstream/auth)
+git -C "$CLAUDE_PROJECT_DIR" rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1 \
+  && git -C "$CLAUDE_PROJECT_DIR" push --quiet && echo "✅ git push ok" \
+  || echo "⚠️ git push nao feito (sem upstream/remote/auth) — rode 'git push' manual se necessario"
 ```
 
 Confirme o que foi alterado e exiba este lembrete:

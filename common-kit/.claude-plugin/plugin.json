@@ -1,7 +1,7 @@
 {
   "name": "common-kit",
-  "description": "Utilitarios comuns: slash command /common-kit:save para manter PROGRESSO/HISTORICO/DECISOES com commit automatico.",
-  "version": "1.0.1",
+  "description": "Utilitarios comuns: slash command /common-kit:save para manter PROGRESSO/HISTORICO/DECISOES com commit e push automatico.",
+  "version": "1.0.2",
   "author": {
     "name": "Almir"
   }

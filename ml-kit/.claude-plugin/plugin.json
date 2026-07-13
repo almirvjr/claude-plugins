@@ -1,7 +1,7 @@
 {
   "name": "ml-kit",
-  "description": "Mercado Libre helpers: headersHelper script (auto-refresh em toda conexao MCP) + slash command manual.",
-  "version": "1.5.0",
+  "description": "Mercado Libre helpers: headersHelper (fonte unica do token em toda conexao MCP) + slash command manual. Fonte do token: Edge Function get-ml-token (ML_TOKEN_FUNCTION_URL+ML_TOKEN_SHARED_SECRET, sem anon key) OU PostgREST anon (SUPABASE_PROJECT_ID+SUPABASE_ANON_KEY).",
+  "version": "1.6.0",
   "author": {
     "name": "Almir"
   }

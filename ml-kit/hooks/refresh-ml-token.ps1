@@ -30,9 +30,11 @@ Get-Content $envPath | ForEach-Object {
     }
 }
 
+$fnUrl     = $envVars['ML_TOKEN_FUNCTION_URL']
+$fnSec     = $envVars['ML_TOKEN_SHARED_SECRET']
 $projectId = $envVars['SUPABASE_PROJECT_ID']
 $anonKey   = $envVars['SUPABASE_ANON_KEY']
-if (-not $projectId -or -not $anonKey) { exit 0 }
+if (-not ($fnUrl -and $fnSec) -and -not ($projectId -and $anonKey)) { exit 0 }
 
 # Checa se .mcp.json tem bloco mercadolibre
 try {
@@ -46,7 +48,23 @@ if (-not $json.mcpServers -or -not $json.mcpServers.mercadolibre) { exit 0 }
 # remover, o Claude Code prioriza-o em vez do headersHelper e o token
 # cacheado vence em ~6h.
 if ($json.mcpServers.mercadolibre.headers) {
-    Write-Host "[ml-kit] AVISO: .mcp.json ainda tem 'headers' literal no bloco mercadolibre. Remova esse campo — apenas 'headersHelper' deve ser usado."
+    Write-Host "[ml-kit] AVISO: .mcp.json ainda tem 'headers' literal no bloco mercadolibre. Remova esse campo - apenas 'headersHelper' deve ser usado."
+}
+
+# Modo Edge Function (consumidor): so consulta e loga status; NAO escreve .mcp.json.
+if ($fnUrl -and $fnSec) {
+    try {
+        $resp = Invoke-RestMethod -Uri $fnUrl -Headers @{ 'x-shared-secret' = $fnSec } -Method Get -TimeoutSec 15
+    } catch {
+        Write-Host "[ml-kit] Falha na Edge Function get-ml-token: $_"
+        exit 0
+    }
+    $token = $resp.access_token
+    if ($token) {
+        $preview = $token.Substring(0, [Math]::Min(20, $token.Length))
+        Write-Host "[ml-kit] Token ML pre-venda (via Edge Function): $preview... Expira: $($resp.expires_at) (headersHelper resolve em cada conexao)"
+    }
+    exit 0
 }
 
 # Filtra app_name=pre-venda: ver comentario em bin/get-ml-headers.ps1.
