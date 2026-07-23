@@ -6,12 +6,26 @@ Faxina de higiene. O objetivo NAO e deletar conhecimento — e separar **regra v
 
 ## Escopo (o que auditar)
 
+Os tres, sempre — nenhum depende de o usuario pedir:
+
 1. O `CLAUDE.md` do projeto atual (`$CLAUDE_PROJECT_DIR/CLAUDE.md`) e o `DECISOES.md`.
-2. Se o usuario pedir "faxina nas memorias", auditar tambem o hub: o indice `MEMORY.md` e os arquivos em `memory/` do perfil Claude.
+2. Se a invocacao for no nivel do hub (a conversa nao e sobre um projeto especifico), os `CLAUDE.md` de cada projeto em `projects/*/`.
+3. O indice `MEMORY.md` e os arquivos em `memory/` do perfil Claude. **Nao espere o usuario pedir "faxina nas memorias".** O indice carrega em TODA sessao de TODO projeto, entao um gancho podre ali contamina mais que qualquer `CLAUDE.md` de projeto.
 
 ## Regra de seguranca ANTES de tocar em qualquer coisa
 
 Faca um snapshot reversivel primeiro. Ex.: copie os arquivos-alvo para uma pasta `_pre-faxina-backup/` (ou confie no git se o alvo for versionado e estiver limpo). Nunca edite sem rede de seguranca.
+
+## Passo 0 — MEDIR antes de classificar
+
+Nem todo estrago e de conteudo. Tem estrago de **volume** e de **forma**, e o metodo dos 3 baldes abaixo nao enxerga nenhum dos dois — ele so olha o que a frase diz, nunca o tamanho do arquivo nem se a frase terminou. Rode estas medidas primeiro e trate o que aparecer como achado de primeira classe, nao como nota de rodape:
+
+- **Peso do que carrega sozinho.** `wc -c` em cada `CLAUDE.md`, comparados entre si. O arquivo muito fora da curva e o alvo da rodada, mesmo que nenhuma frase dele esteja errada. Meca em BYTES, nao linhas — uma unica linha pode ter 11 mil caracteres.
+- **Teto de leitura do indice.** `wc -l MEMORY.md` contra o teto de 200 linhas. Passou de ~150 (75%), e hora de agrupar. Isso e achado, mesmo com o conteudo todo saudavel.
+- **Linha cortada no meio da frase.** No indice, procure linha que termina em preposicao, artigo ou parentese aberto. Sao ganchos escritos pela metade em sessoes passadas, e o pedaco que faltou costuma ser justamente a conclusao ("Modern Standby nao", "...pages.dev nao"). Reescreva usando o `description:` do proprio arquivo de memoria como fonte.
+- **Integridade do indice.** Todo arquivo em `memory/` tem linha no indice? Toda linha aponta pra arquivo que existe? (Ao montar o filtro, lembre que nome de arquivo pode ter maiuscula — filtro so-minusculas gera orfa falsa.)
+
+**Agrupar nao e apagar.** Pra ganhar espaco no indice, junte memorias do MESMO assunto numa linha so, separadas por ` · ` (padrao que o indice ja usa). Vale pra quirk tecnico complementar — n8n, openclaw, gotcha de maquina. **Nao agrupe feedback de comportamento nem estado de projeto:** enterrar esses numa linha comprida e o oposto do objetivo. Depois de agrupar, prove que nada sumiu — conte os arquivos referenciados antes e depois e mostre o numero.
 
 ## Metodo — classifique cada trecho/arquivo em 3 baldes
 
@@ -34,4 +48,6 @@ Faca um snapshot reversivel primeiro. Ex.: copie os arquivos-alvo para uma pasta
 
 ## Entrega
 
-Ao final, apresente um resumo escaneavel: quantas ENXUGADAS, quantas INTACTAS, e a FILA DE VEREDITO (aglomerados + contradicoes + estado-de-projeto) pra o usuario decidir. As contradicoes ativas sao a prioridade — sao instrucao podre em uso.
+Ao final, apresente um resumo escaneavel: as MEDIDAS do Passo 0 (peso dos arquivos, linhas do indice antes/depois), quantas ENXUGADAS, quantas INTACTAS, e a FILA DE VEREDITO (aglomerados + contradicoes + estado-de-projeto) pra o usuario decidir. As contradicoes ativas sao a prioridade — sao instrucao podre em uso.
+
+Se uma contradicao puder ser resolvida com evidencia em vez de pergunta (ler o workflow, o codigo, o banco), **resolva e diga qual venceu e como voce sabe**. Fila de veredito e pra o que so o dono sabe, nao pra o que da trabalho conferir.
