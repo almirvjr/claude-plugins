@@ -4,7 +4,7 @@
 # IMPORTANTE: este hook NAO escreve em .mcp.json. Antigamente (v1.0-v1.3) ele
 # atualizava o campo headers.Authorization, mas isso conflita com o
 # headersHelper (introduzido em v1.1, que ja faz leitura ao vivo do Supabase
-# em toda conexao MCP) — o headers literal ficava cacheado com token antigo
+# em toda conexao MCP) - o headers literal ficava cacheado com token antigo
 # enquanto o headersHelper era ignorado, derrubando o MCP em ~6h.
 #
 # A partir de v1.4, este hook so consulta o token e loga status. headersHelper
