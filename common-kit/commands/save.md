@@ -1,5 +1,5 @@
 ---
-description: Atualiza arquivos de progresso (PROGRESSO, HISTORICO, DECISOES) com base na sessao atual e faz commit automatico.
+description: Atualiza arquivos de progresso (PROGRESSO, HISTORICO, DECISOES) com base na sessao atual, faz commit automatico e pergunta se grava o codigo da sessao em commit separado.
 ---
 
 Atualize os arquivos de progresso com base no que foi feito nesta sessao.
@@ -61,8 +61,29 @@ fi
 mostrando a mensagem e o horario de agora). Push "ok" sem commit novo so quer dizer que nao
 havia nada pra enviar — nao que salvou.
 
-**Este comando versiona so os arquivos de progresso.** Codigo alterado na sessao continua sem
-commit de proposito. Se houver, diga isso ao usuario no fim e ofereca commitar em separado.
+**O script acima versiona so os arquivos de progresso.** Codigo nunca entra nesse commit nem
+vai sozinho: no fim da sessao ele pode estar pela metade, e o repo pode ser compartilhado ou
+publico. Por isso, depois do script:
+
+9. **Codigo que ficou de fora = UMA pergunta, e com o "sim" um commit SEPARADO.**
+   - Liste o que sobrou: `git status --porcelain` (arquivo alterado e arquivo novo).
+     Nada sobrou → pule este passo calado.
+   - Antes de perguntar, confira:
+     - **visibilidade** do repo (`gh repo view --json visibility -q .visibility`) e se ele e
+       compartilhado com outra pessoa (memoria/CLAUDE.md do projeto dizem). Publico ou
+       compartilhado entra na pergunta, em destaque;
+     - **lixo e segredo**: arquivo de depuracao, resposta de API salva, `.env`, `.tmp*`,
+       dump, captura de tela. Esses ficam FORA da lista, e voce diz quais deixou de fora e por que.
+       Procure tambem senha, token, chave e CPF no diff;
+     - **se o codigo esta pronto**: testes rodados nesta sessao? Se nao, ou se algum falhou,
+       diga isso na pergunta.
+   - Pergunte UMA vez (AskUserQuestion), mostrando a lista de arquivos e o que a mudanca faz
+     em uma frase: "Gravo o codigo tambem?". Sem resposta clara de sim → nao grava.
+   - Com o "sim": `git add -- <cada arquivo da lista, pelo nome>` (nunca `git add -A` nem
+     `git add .`), commit **proprio**, com mensagem que descreve a mudanca (`feat(...)`,
+     `fix(...)`, nunca o `chore: save session progress`), o mesmo trailer de co-autoria, e
+     push. Confira o commit novo com `git log -1`, como acima.
+   - Com o "nao": diga que o codigo ficou sem commit e liste os arquivos.
 
 Confirme o que foi alterado e exiba este lembrete:
 
